@@ -27,6 +27,9 @@ public class SecurityConfig {
     @Autowired
     private UnauthorizedEntryPoint unauthorizedEntryPoint;
 
+    @Autowired
+    private JwtConfig jwtConfig;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -42,7 +45,7 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedEntryPoint)
                 )
-                .addFilterBefore(authenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtConfig, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -65,9 +68,9 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public JwtConfig authenticationTokenFilter() {
-        return new JwtConfig();
-    }
+//    @Bean
+//    public JwtConfig authenticationTokenFilter() {
+//        return new JwtConfig();
+//    }
 
 }
