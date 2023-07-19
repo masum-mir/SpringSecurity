@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -30,21 +31,18 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            .csrf().disable().cors().disable()
-            .authorizeRequests(authorize -> authorize
-                .antMatchers("/api/**", "/login").permitAll()
-                .antMatchers("/admin/**").hasRole("ADMIN")
-                .antMatchers("/users/**").hasRole("USER")
+                .csrf().disable().cors().disable()
+                .authorizeRequests(authorize -> authorize
+                                .antMatchers("/api/**", "/login").permitAll()
+                                .antMatchers("/admin/**").hasRole("ADMIN")
+                                .antMatchers("/users/**").hasRole("USER")
 //                .anyRequest().authenticated()
-            )
-            .authenticationProvider(daoAuthenticationProvider())
-            .addFilterBefore(authenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling(exception -> exception
-                 .authenticationEntryPoint(unauthorizedEntryPoint)
-            )
-            .sessionManagement(session -> session
-                  .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            );
+                )
+                .authenticationProvider(daoAuthenticationProvider())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedEntryPoint)
+                )
+                .addFilterBefore(authenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -64,7 +62,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 
     @Bean

@@ -17,15 +17,5 @@ public class SpringRestApplication {
         app.setDefaultProperties(Collections.singletonMap("server.port", "9091"));
         app.run(args);
     }
-//
-//    @Autowired
-//    private AuthInterceptor authInterceptor;
-//
-//    @Override
-//    public void addInterceptors(InterceptorRegistry registry) {
-//        registry.addInterceptor(authInterceptor);
-//
-//    }
-
 
 }
