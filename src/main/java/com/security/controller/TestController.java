@@ -4,6 +4,7 @@ import com.security.model.AppResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+
 @RestController
 @RequestMapping("admin")
 public class TestController {

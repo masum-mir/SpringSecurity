@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .antMatchers("/api/**", "/login").permitAll()
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/users/**").hasRole("USER")
-                .anyRequest().authenticated()
+//                .anyRequest().authenticated()
             )
             .authenticationProvider(daoAuthenticationProvider())
             .addFilterBefore(authenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class)

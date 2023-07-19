@@ -126,7 +126,7 @@ public class JwtUtils {
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
-    public boolean isTokenExpired(String token) {
+    private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
@@ -135,8 +135,10 @@ public class JwtUtils {
     }
 
     private Claims extractAllClaim(String token) {
-//        byte[] getSignInKey = new byte[0];
-        return Jwts.parserBuilder().setSigningKey(getSignInKey()).build().parseClaimsJws(token).getBody();
+        byte[] getSignInKey = new byte[0];
+         Claims claim = Jwts.parserBuilder().setSigningKey(getSignInKey()).build().parseClaimsJws(token).getBody();
+
+        return claim;
     }
 
     private Key getSignInKey() {
