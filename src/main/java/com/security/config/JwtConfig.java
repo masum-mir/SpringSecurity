@@ -14,59 +14,90 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
+import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
-public class JwtConfig extends OncePerRequestFilter {
-
-    @Autowired
-    private JwtUtils jwtUtils;
+public class JwtConfig implements Filter {
 
     @Autowired
     private MyUserDetailsService userDetailsService;
 
+    @Autowired
+    private JwtUtils jwtUtils;
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    public void init(FilterConfig filterConfig) throws ServletException {
+        System.out.println("init method call::;"+filterConfig);
+        Filter.super.init(filterConfig);
+    }
 
-        String authorizationHeader = request.getHeader("Authorization");
-        String userName = null;
-        String token = null;
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 
-        if (authorizationHeader != null) {
-            token = authorizationHeader.trim();
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        /*Enumeration<String> headerNames = httpRequest.getHeaderNames();
 
+        if (headerNames != null) {
+            while (headerNames.hasMoreElements()) {
+                String headerKey = headerNames.nextElement();
+                System.out.println("Header ==> " + headerKey + ":" + httpRequest.getHeader(headerKey));
+            }
+        }*/
+
+
+        String username = null;
+
+        if (httpRequest.getMethod().equalsIgnoreCase("OPTIONS")) {
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.getWriter().write("{\"status\": 200, \"body\": \"OK\", \"message\": \"SUCCESS\"}");
+        }
+
+        String token = httpRequest.getHeader("authorization");
+        if (token == null || token.trim().isEmpty()) {
+            token = httpRequest.getHeader("Authorization");
+        }
+
+        if (token != null && !token.trim().isEmpty()) {
             try {
-                userName = jwtUtils.extractusername(token);
-            } catch (IllegalArgumentException e) {
-                logger.error("An error occurred while fetching username from token: ", e);
+                username = jwtUtils.extractusername(token);
             } catch (ExpiredJwtException e) {
-                logger.warn("The token has expired!!!");
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 response.getWriter().write("{\"status\": 401, \"body\": null, \"message\": \"Token Expired\"}");
                 return;
-            } catch (SignatureException e) {
-                logger.error("Authentication Failed. Username or Password not valid.");
             }
         }
 
-        System.out.println("test::: ");
+        if (username != null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-        if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
             if (jwtUtils.isTokenValid(token, userDetails)) {
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
             }
+
+//            }
+
+//            System.out.println(token);
+//            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+//            response.getWriter().write("{\"status\": 200, \"body\": \"OK\", \"message\": \"SUCCESS\"}");
+
         }
 
         filterChain.doFilter(request, response);
     }
 
+    @Override
+    public void destroy() {
+        System.out.println("destroy method call");
+        Filter.super.destroy();
+    }
 }
