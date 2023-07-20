@@ -28,7 +28,7 @@ public class SecurityConfig {
     private UnauthorizedEntryPoint unauthorizedEntryPoint;
 
     @Autowired
-    private JwtConfig jwtConfig;
+    private AuthenticationFilter authenticationFilter;    // please give me an instance of this class
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -39,13 +39,13 @@ public class SecurityConfig {
                                 .antMatchers("/api/**", "/login").permitAll()
                                 .antMatchers("/admin/**").hasRole("ADMIN")
                                 .antMatchers("/users/**").hasRole("USER")
-//                .anyRequest().authenticated()
+                .anyRequest().authenticated()
                 )
                 .authenticationProvider(daoAuthenticationProvider())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedEntryPoint)
-                )
-                .addFilterBefore(jwtConfig, UsernamePasswordAuthenticationFilter.class);
+                );
+//                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -68,7 +68,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-//    @Bean
+//    @Bean                                             // here is an instance of this class, please keep hold of it and give it back to me when i ask
 //    public JwtConfig authenticationTokenFilter() {
 //        return new JwtConfig();
 //    }

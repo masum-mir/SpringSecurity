@@ -1,7 +1,6 @@
 com\security\model\User.class
 com\security\utils\EnvConfig.class
 com\security\controller\HomeController.class
-com\security\config\JwtConfig.class
 com\security\controller\TestController.class
 com\security\config\DBConfig.class
 com\security\interceptor\AuthInterceptor.class
@@ -12,6 +11,7 @@ com\security\utils\ENV.class
 com\security\service\UserService.class
 com\security\utils\ENV$DB$CORE.class
 com\security\config\UnauthorizedEntryPoint.class
+com\security\config\AuthenticationFilter.class
 com\security\config\SecurityConfig.class
 com\security\controller\AuthController.class
 com\security\utils\ENV$DB$AUTH.class
