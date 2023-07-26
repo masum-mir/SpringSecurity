@@ -21,14 +21,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 //@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+//    @Autowired
+//    private UserDetailsService userDetailsService;
+//
+//    @Autowired
+//    private UnauthorizedEntryPoint unauthorizedEntryPoint;
+//
+//    @Autowired
+//    private AuthenticationFilter authenticationFilter;    // please give me an instance of this class
+
+    private final UserDetailsService userDetailsService;
+    private final UnauthorizedEntryPoint unauthorizedEntryPoint;
+    private final AuthenticationFilter authenticationFilter;
 
     @Autowired
-    private UnauthorizedEntryPoint unauthorizedEntryPoint;
-
-    @Autowired
-    private AuthenticationFilter authenticationFilter;    // please give me an instance of this class
+    public SecurityConfig(UserDetailsService userDetailsService, UnauthorizedEntryPoint unauthorizedEntryPoint, AuthenticationFilter authenticationFilter) {
+        this.userDetailsService = userDetailsService;
+        this.unauthorizedEntryPoint = unauthorizedEntryPoint;
+        this.authenticationFilter = authenticationFilter;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -44,8 +55,8 @@ public class SecurityConfig {
                 .authenticationProvider(daoAuthenticationProvider())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedEntryPoint)
-                );
-//                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                )
+                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -1,5 +1,7 @@
 package com.security.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 
 import java.util.Date;
@@ -18,6 +20,12 @@ public class AppResponse<T> {
 
     private AppResponse(HttpStatus status) {
         this.status = status;
+        timestamp = new Date();
+    }
+
+    public AppResponse(HttpStatus status, String message) {
+        this.status = status;
+        this.message = message;
         timestamp = new Date();
     }
 
@@ -58,6 +66,20 @@ public class AppResponse<T> {
 
     public T getHeader() {
         return header;
+    }
+
+    public String toJson() {
+        return "{\"status\":"+ status +", \"message\":\"" + message + "\"}";
+    }
+
+    public String toJson2() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return "{}";
     }
 
 }
