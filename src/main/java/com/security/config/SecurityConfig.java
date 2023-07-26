@@ -15,8 +15,10 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
+@EnableWebMvc
 @EnableWebSecurity
 //@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
@@ -36,7 +38,7 @@ public class SecurityConfig {
         http
                 .csrf().disable().cors().disable()
                 .authorizeRequests(authorize -> authorize
-                                .antMatchers("/api/**", "/login").permitAll()
+                                .antMatchers("/api/**", "/login", "/refreshToken","/v3/api-docs","/v2/api-docs", "/swagger-resources/**","/swagger-ui/**","/webjars/**").permitAll()
                                 .antMatchers("/admin/**").hasRole("ADMIN")
                                 .antMatchers("/users/**").hasRole("USER")
                 .anyRequest().authenticated()
@@ -44,8 +46,8 @@ public class SecurityConfig {
                 .authenticationProvider(daoAuthenticationProvider())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedEntryPoint)
-                );
-//                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                )
+                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

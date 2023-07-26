@@ -13,12 +13,10 @@ public class UserRepo {
     private JdbcTemplate jdb;
 
     public User findByUserName(String username) {
-
         String sql = "select * from users where username = ?";
-
         Object[] args = {username};
-
         return jdb.queryForObject(sql, args, new BeanPropertyRowMapper<User>(User.class));
-
     }
+
+
 }
