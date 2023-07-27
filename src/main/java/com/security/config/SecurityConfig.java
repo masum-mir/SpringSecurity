@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .authorizeRequests(authorize -> authorize
                                 .antMatchers("/api/**", "/login", "/log-out").permitAll()
                                 .antMatchers("/admin/**").hasRole("ADMIN")
-                                .antMatchers("/users/**").hasRole("USER")
+                                .antMatchers("/users/**").hasAnyRole("ADMIN","USER")
                 .anyRequest().authenticated()
                 )
                 .authenticationProvider(daoAuthenticationProvider())

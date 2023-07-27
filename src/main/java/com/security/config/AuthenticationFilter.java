@@ -64,7 +64,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             if (jwt != null) {
 
                 claims = jwt.getClaims();
-                userName = claims.get("sub").asString();
+                userName = claims.get("username").asString();
 
                 if (jwtUtils.isTokenExpired2(jwt)) {
                     allowCrossOrigin(request, response, filterChain);
@@ -80,10 +80,10 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
                 System.out.println("getAuthentication :: " + SecurityContextHolder.getContext().getAuthentication());
 
-                if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-//                    List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(claims.get("role").asString()));
-                    final Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("role").toString().split(","))
-                            .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+                if (userName != null ) {
+                    List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(claims.get("role").asString()));
+//                    final Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("role").toString().split(","))
+//                            .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userName, null, authorities);
                     SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
                 }
