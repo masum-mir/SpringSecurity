@@ -1,17 +1,25 @@
 package com.security.config;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.security.model.AppResponse;
 import com.security.utils.JwtUtils;
 import com.security.utils.KEY;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.SignatureException;
+import org.apache.tomcat.util.http.parser.Authorization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,6 +28,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class AuthenticationFilter extends OncePerRequestFilter {
@@ -39,36 +49,47 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
+    Map<String, Claim> claims = new HashMap<>();
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String authorizationHeader = request.getHeader(KEY.AUTHORIZATION);
+        String token = request.getHeader(KEY.AUTHORIZATION == "Authorization" ? "Authorization" : "authorization");
         String userName = null;
-        String token = null;
 
-        if (authorizationHeader != null) {
-            token = authorizationHeader.trim();
+        if (token != null && !request.getMethod().equalsIgnoreCase("OPTIONS")) {
 
-            try {
-                userName = jwtUtils.extractusername(token);
-            } catch (IllegalArgumentException e) {
-                logger.error("An error occurred while fetching username from token: ", e);
-            } catch (ExpiredJwtException e) {
-                logger.warn("The token has expired!!!");
-                sendErrorResponse(response, HttpStatus.valueOf(response.SC_UNAUTHORIZED), "Token Expired!");
-                return;
-            } catch (SignatureException e) {
-                logger.error("Authentication Failed. Username or Password not valid.");
+            DecodedJWT jwt = JWT.decode(token);
+
+            if (jwt != null) {
+
+                claims = jwt.getClaims();
+                userName = claims.get("sub").asString();
+
+                if (jwtUtils.isTokenExpired2(jwt)) {
+                    allowCrossOrigin(request, response, filterChain);
+                    sendErrorResponse(response, HttpStatus.valueOf(response.SC_UNAUTHORIZED), "Token Expired");
+                    return;
+                }
+
+                if (!hasValidClaims()) {
+                    allowCrossOrigin(request, response, filterChain);
+                    sendErrorResponse(response, HttpStatus.valueOf(response.SC_UNAUTHORIZED), "Invalid token.");
+                    return;
+                }
+
+                System.out.println("getAuthentication :: " + SecurityContextHolder.getContext().getAuthentication());
+
+                if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+//                    List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(claims.get("role").asString()));
+                    final Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("role").toString().split(","))
+                            .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userName, null, authorities);
+                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                }
             }
         }
 
-        if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
-            if (jwtUtils.isTokenValid(token, userDetails)) {
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-            }
-        }
         allowCrossOrigin(request, response, filterChain);
         filterChain.doFilter(request, response);
     }
@@ -87,5 +108,15 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write(errorResponse.toJson2());
     }
+
+    private boolean hasValidClaims() {
+
+        if (claims != null && claims.containsKey("jti")) {
+            return true;
+        }
+
+        return false;
+    }
+
 
 }

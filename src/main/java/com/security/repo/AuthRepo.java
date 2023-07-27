@@ -7,6 +7,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Repository
 public class AuthRepo {
 
@@ -16,21 +19,21 @@ public class AuthRepo {
     @Autowired
     private NamedParameterJdbcTemplate ndb;
 
-    public User findByUserName(String username) {
+    public Map<String, Object> findByUserName(String username) {
 
-        String sql = "select * from users where username = ?";
+        String sql = "select * from users where username = :username";
 
-        Object[] args = {username};
+//        Object[] args = {username};
 
-//        Map<String, Object> params = new HashMap<>();
-//        params.put("username", username);
+//        try {
+//            return jdb.queryForObject(sql, args, new BeanPropertyRowMapper<>(User.class));
+//        } catch (Exception e) {
+//            return null;
+//        }
 
-        try {
-            return jdb.queryForObject(sql, args, new BeanPropertyRowMapper<>(User.class));
-        } catch (Exception e) {
-            return null;
-        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("username", username);
 
-
+        return ndb.queryForMap(sql, params);
     }
 }

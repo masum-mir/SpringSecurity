@@ -47,7 +47,7 @@ public class SecurityConfig {
         http
                 .csrf().disable().cors().disable()
                 .authorizeRequests(authorize -> authorize
-                                .antMatchers("/api/**", "/login").permitAll()
+                                .antMatchers("/api/**", "/login", "/log-out").permitAll()
                                 .antMatchers("/admin/**").hasRole("ADMIN")
                                 .antMatchers("/users/**").hasRole("USER")
                 .anyRequest().authenticated()

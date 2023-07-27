@@ -44,9 +44,12 @@ public class JwtUtils {
 
     public String generateToken(Map<String, Object> extrClaims, User user) {
         return Jwts.builder().setClaims(extrClaims)
-                .setSubject(user.getUsername())
-                .setAudience(user.getEmail())
+                .setSubject("Token Testing")
+                .setAudience("Token Audience")
                 .setId(user.getUser_id().toString())
+                .claim("username", user.getUsername())
+                .claim("email", user.getEmail())
+                .claim("number", user.getNumber())
                 .claim("role", user.getRole())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000*60*24))
@@ -126,7 +129,7 @@ public class JwtUtils {
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
-    private boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
@@ -135,7 +138,7 @@ public class JwtUtils {
     }
 
     private Claims extractAllClaim(String token) {
-        byte[] getSignInKey = new byte[0];
+//        byte[] getSignInKey = new byte[0];
          Claims claim = Jwts.parserBuilder().setSigningKey(getSignInKey()).build().parseClaimsJws(token).getBody();
 
         return claim;
@@ -144,6 +147,10 @@ public class JwtUtils {
     private Key getSignInKey() {
         byte[] bytes = Decoders.BASE64.decode(ENV.getToken());
         return Keys.hmacShaKeyFor(bytes);
+    }
+
+    public boolean isTokenExpired2(DecodedJWT decodedJWT) {
+        return null != decodedJWT && decodedJWT.getExpiresAt().before(new Date());
     }
 
     public DecodedJWT getDecodedToken(String token) {
