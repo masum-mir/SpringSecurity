@@ -103,8 +103,8 @@ public class AuthController {
             u.setUsername(AppUtils.toString(user.get("username")));
             u.setEmail(AppUtils.toString(user.get("email")));
             u.setUser_id(AppUtils.toLong(user.get("user_id")));
-            u.setRole(AppUtils.toString("role"));
-            u.setNumber(AppUtils.toString("number"));
+            u.setRole(AppUtils.toString(user.get("role")));
+            u.setNumber(AppUtils.toString(user.get("number")));
 
             String token = jwtUtils.generateToken(u);
             System.out.println("token:::: " + token);
