@@ -2,7 +2,8 @@ package com.security.utils;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.security.model.User;
+import com.security.dto.UserMDto;
+import com.security.model.UserM;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -38,11 +39,11 @@ public class JwtUtils {
         return claimsTFunction.apply(claims);
     }
 
-    public String generateToken(User user) {
+    public String generateToken(UserMDto user) {
         return generateToken(new HashMap<>(),user);
     }
 
-    public String generateToken(Map<String, Object> extrClaims, User user) {
+    public String generateToken(Map<String, Object> extrClaims, UserMDto user) {
         return Jwts.builder().setClaims(extrClaims)
                 .setSubject("Token Testing")
                 .setAudience("Token Audience")
@@ -50,14 +51,14 @@ public class JwtUtils {
                 .claim("username", user.getUsername())
                 .claim("email", user.getEmail())
                 .claim("number", user.getNumber())
-                .claim("role", user.getRole())
+//                .claim("role", user.getRole())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000*60*24))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String generateToken2(User user) {
+    public String generateToken2(UserM user) {
         JwtBuilder builder = Jwts.builder().setId(String.valueOf(user.getUser_id()))
                 .setIssuer("Test_USER")
                 .setAudience("TEST_PROJECT")
@@ -66,7 +67,7 @@ public class JwtUtils {
                 .claim("username", user.getUsername())
                 .claim("email", user.getEmail())
                 .claim("phone", user.getNumber())
-                .claim("role", user.getRole())
+//                .claim("role", user.getRole())
                 .claim("token_initial", SHA256(getIpProxyIp(servletRequest) + getClientInfo(servletRequest)))
                 .setIssuedAt(Calendar.getInstance().getTime()).setNotBefore(Calendar.getInstance().getTime());
 

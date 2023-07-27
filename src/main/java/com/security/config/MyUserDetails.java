@@ -1,6 +1,6 @@
 package com.security.config;
 
-import com.security.model.User;
+import com.security.model.UserM;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,24 +8,23 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MyUserDetails implements UserDetails {
 
-    User user;
+    UserM user;
 
-    MyUserDetails(User user) {
+    MyUserDetails(UserM user) {
         this.user = user;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
 
-        List<GrantedAuthority> grantedAuthorityList = new ArrayList<>();
-
-        SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority(user.getRole());
-        grantedAuthorityList.add(simpleGrantedAuthority);
-
-        return grantedAuthorityList;
+        List<GrantedAuthority> authorities = user.getRoles().stream()
+                        .map(role -> new SimpleGrantedAuthority(role.getName().name()))
+                                .collect(Collectors.toList());
+        return authorities;
     }
 
     @Override

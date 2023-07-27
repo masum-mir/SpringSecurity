@@ -1,23 +1,31 @@
 package com.security.controller;
 
+import com.security.config.AuthenticationFilter;
+import com.security.config.MyUserDetails;
 import com.security.config.MyUserDetailsService;
+import com.security.dto.UserMDto;
 import com.security.model.AppResponse;
-import com.security.model.User;
+import com.security.model.UserM;
 import com.security.repo.AuthRepo;
+import com.security.repo.UserMRepo;
+import com.security.service.UserService;
 import com.security.utils.AppUtils;
 import com.security.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -30,8 +38,14 @@ public class AuthController {
     @Autowired
     private MyUserDetailsService userDetailsService;
 
+//    @Autowired
+//    private AuthRepo authRepo;
+
     @Autowired
-    private AuthRepo authRepo;
+    private UserMRepo userMRepo;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -86,24 +100,31 @@ public class AuthController {
 
         Map<String, Object> user = new HashMap<>();
 
-        try {
-            user = authRepo.findByUserName(username);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return AppResponse.build(HttpStatus.INTERNAL_SERVER_ERROR).message("User not valid");
-        }
+//        try {
+//            user = (Map<String, Object>) userService.findByUserName(username);
+//        } catch (Exception e) {
+//            log.error(e.getMessage());
+//            return AppResponse.build(HttpStatus.INTERNAL_SERVER_ERROR).message("User not valid");
+//        }
+
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        MyUserDetails userDetails = (MyUserDetails) authentication.getPrincipal();
+
+        List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority()).collect(Collectors.toList());
 
         if(!passwordEncoder.matches(password, AppUtils.toString(user.get("password"))) && AppUtils.getLong(user, "user_id")!=0) {
             return AppResponse.build(HttpStatus.UNAUTHORIZED).message("Username/Password is invalid");
         }
 
-
         if(user != null) {
-            User u = new User();
-            u.setUsername(AppUtils.toString(user.get("username")));
+            UserMDto u = new UserMDto();
+            u.setUsername(AppUtils.toString(userDetails.getUsername()));
             u.setEmail(AppUtils.toString(user.get("email")));
             u.setUser_id(AppUtils.toLong(user.get("user_id")));
-            u.setRole(AppUtils.toString(user.get("role")));
+//            u.setRole(AppUtils.toString(user.get("role")));
+//            u.setRoles();
             u.setNumber(AppUtils.toString(user.get("number")));
 
             String token = jwtUtils.generateToken(u);

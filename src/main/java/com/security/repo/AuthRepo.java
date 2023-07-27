@@ -1,8 +1,6 @@
 package com.security.repo;
 
-import com.security.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -21,7 +19,7 @@ public class AuthRepo {
 
     public Map<String, Object> findByUserName(String username) {
 
-        String sql = "select * from users where username = :username";
+        String sql = "select * from userm where username = :username";
 
 //        Object[] args = {username};
 
