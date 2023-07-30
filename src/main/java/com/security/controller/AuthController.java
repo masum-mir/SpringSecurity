@@ -120,6 +120,9 @@ public class AuthController {
 
         if(user != null) {
             UserMDto u = new UserMDto();
+
+            u.setUsername(userDetails.getUsername());
+
             u.setUsername(AppUtils.toString(userDetails.getUsername()));
             u.setEmail(AppUtils.toString(user.get("email")));
             u.setUser_id(AppUtils.toLong(user.get("user_id")));
